@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.DinnerOrdersDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.DinnerOrdersEntity">
+		
+		
+		select * ,0 as isRecom from t_dinner_orders
+		
+		<where>
+		<if test="timeNo !=null and timeNo.trim() !=''">
+		and DATE_FORMAT(create_time,"%Y-%m-%d")=DATE_FORMAT(#{timeNo},"%Y-%m-%d")
+		</if>
+		<if test="userName != null and userName.trim() !=''">
+				and `user_name` like concat('%',#{userName},'%') 
+		</if>
+		
+		<if test="createTime !=null">
+		and DATE_FORMAT(create_time,"%Y-%m")=DATE_FORMAT(#{createTime},"%Y-%m")
+		</if>
+		
+		<if test="department !=null and department.trim()!=''">
+				and department=#{department}
+		</if>
+			
+		<if test="department ==null or  department.trim()==''">
+				and department is null
+		</if>
+		
+		</where>
+		order by case when status='未审核' then 0  else 1 end  asc
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+		
+		
+		
+		
+	</select>
+	
+	
+	<select id="queryList1" resultType="com.winhands.modules.restaurant.entity.DinnerOrdersEntity">
+		
+		
+		select * ,0 as isRecom from t_dinner_orders
+		
+		<where>
+		
+		<!-- <if test="userName != null and userName.trim() !=''">
+				and `user_name` like concat('%',#{userName},'%') 
+		</if> -->
+		
+		<if test="time !=null  and time.trim() !=''">
+		and DATE_FORMAT(create_time,"%Y-%m-%d")=DATE_FORMAT(#{time},"%Y-%m-%d")
+		</if>
+		
+		<if test="createTime !=null">
+		and DATE_FORMAT(create_time,"%Y-%m")=DATE_FORMAT(#{createTime},"%Y-%m")
+		</if>
+		<if test="departmentId != null">
+				and department_id=#{departmentId}
+		</if>
+		<if test="status != null and status.trim() !=''">
+				and status=#{status}
+		</if>
+		
+		</where>
+		order by case when status=#{status} then 0  else 1 end  asc
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+		</select>
+	
+	
+	<select id="queryListDu" resultType="com.winhands.modules.restaurant.entity.DinnerOrdersEntity">
+		select * from t_dinner_orders
+		<where>
+		<if test="time !=null and time.trim() !=''">
+		and	 DATE_FORMAT(create_time,"%Y-%m-%d")=DATE_FORMAT(#{time},"%Y-%m-%d")
+		 </if>
+		</where>
+	</select>
+	
+	
+	
+	
+	
+		<select id="queryDateList" resultType="com.winhands.modules.restaurant.entity.DinnerOrdersEntity">
+		
+		
+		select create_time from t_dinner_orders
+		
+		<where>
+		<if test="createTime !=null">
+		and DATE_FORMAT(create_time,"%Y-%m")=DATE_FORMAT(#{createTime},"%Y-%m")
+		</if>
+		</where>
+		
+		order by id 
+		desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="querySelList" resultType="com.winhands.modules.restaurant.entity.DinnerOrdersEntity">
+		select t2.* ,tt1.is_recom isRecom ,tt1.recom_num recomNum from 
+			(select t1.* from t_dish_carte t1 
+				<where>
+				<if test="carteId != null ">
+					and carte_id = #{carteId}
+				</if> 
+				</where>
+			)
+			tt1
+			right JOIN  
+			(select * from t_dinner_orders
+				<where>
+				<if test="address != null and address.trim() != ''">
+					and address = #{address}
+				</if> 
+				</where>
+			) t2 
+			on tt1.dishes_id = t2.id 
+			order by t2.id 
+			desc
+		
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	<select id="queryDishList" resultType="com.winhands.modules.restaurant.entity.DinnerOrdersEntity">
+		select t2.*,t1.recom_num recomNum from t_dinner_orders t1,t_dishes t2
+		where carte_id = #{carteId}
+		and t1.dishes_id = t2.id
+	</select>
+	<select id="queryObject" resultType="com.winhands.modules.restaurant.entity.DinnerOrdersEntity">
+		select * from t_dinner_orders where id = #{id}
+	</select>
+	
+	<select id="queryTotal"  resultType="int">
+		select count(*) from t_dinner_orders 
+		<where>
+		<if test="department !=null and department.trim() !=''">
+		and department=#{department}
+		</if>
+		<if test="department ==null or  department.trim()==''">
+				and department is null
+		</if>
+		
+		
+		</where>	
+		
+	</select>
+	
+	<select id="queryTotal2"  resultType="int">
+		select count(*) from t_dinner_orders 
+		<where>
+		and status='已审核'
+		<if test="time !=null">
+		and DATE_FORMAT(create_time,"%Y-%m-%d")=DATE_FORMAT(#{time},"%Y-%m-%d")
+		</if>
+		<if test="departmentId != null">
+		and department_id=#{departmentId}
+		</if>
+		</where>	
+		
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	<select id="queryTotal1"      resultType="int">
+		select count(*) from t_dinner_orders
+		<where>
+		<if test="departmentId != null">
+		and department_id=#{departmentId}
+		</if>
+		
+		</where>	
+	</select>
+	
+	
+	
+	
+	<select id="querySelTotal" resultType="int">
+		select count(*) recomNum from
+		(select t2.* ,tt1.is_recom isRecom ,tt1.recom_num recomNum from 
+			(select t1.* from t_dish_carte t1 
+				<where>
+				<if test="carteId != null ">
+					and carte_id = #{carteId}
+				</if> 
+				</where>
+			)
+			tt1
+			right JOIN  t_dinner_orders t2 
+			on tt1.dishes_id = t2.id )tt1
+	</select>
+	
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.DinnerOrdersEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into t_dinner_orders
+		(
+			 
+			`user_name`, 
+			`mobile`,
+			`address`,
+			`create_time`,
+			`department`,
+			`status`
+			
+			)
+		values
+		(
+			
+			#{userName}, 
+			#{mobile},
+			#{address},
+			#{createTime},
+			#{department},
+			#{status}
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.winhands.modules.restaurant.entity.DinnerOrdersEntity">
+		update t_dinner_orders 
+		<set> 
+			<if test="status != null">`status` = #{status}, </if>
+			</set>
+		where id = #{id} 
+	</update>
+	
+	
+	<update id="updateState">
+		update t_dinner_orders set `status` = '已审核' where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</update>
+	
+	
+	
+	<delete id="deleteBatch">
+		delete from t_dinner_orders where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>

@@ -1,0 +1,95 @@
+package com.winhands.modules.restaurant.controller;
+
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.winhands.common.annotation.SysLog;
+import com.winhands.common.utils.PageUtils;
+import com.winhands.common.utils.Query;
+import com.winhands.common.utils.R;
+import com.winhands.modules.restaurant.entity.DinnerOrdersEntity;
+import com.winhands.modules.restaurant.entity.OneCardEntity;
+import com.winhands.modules.restaurant.service.OneCardService;
+import com.winhands.modules.sys.controller.AbstractController;
+
+/**
+ * 一卡通查询管理
+ * 
+ */
+@RestController
+@RequestMapping("/restaurant/oneCard")
+public class OneCardController extends AbstractController {
+	@Autowired
+	private OneCardService oneCardService;
+	@ResponseBody
+	@RequestMapping("/list")	
+	public R list(@RequestParam Map<String, Object> params){
+		//查询列表数据
+		Query query = new Query(params);
+		List<OneCardEntity> oneCardList = oneCardService.queryList(query);
+		int total = oneCardService.queryTotal(query);
+		PageUtils pageUtil = new PageUtils(oneCardList, total, query.getLimit(), query.getPage());
+		
+		return R.ok().put("page", pageUtil);
+	}
+	
+	
+	/**
+	 * 删除一卡通帐户交易信息
+	 */
+	@SysLog("删除一卡通帐户交易信息")
+	@RequestMapping("/delete")
+	public R delete(@RequestBody Long[] ids){
+		oneCardService.deleteBatch(ids);
+		
+		return R.ok();
+	}
+	
+	/**
+	 * 客户端获取个人消费流水列表
+	 */
+
+	@RequestMapping(value="/oneCardTransList" , method = RequestMethod.POST)
+	public R oneCardTransList(String startTime,String endTime,String account){
+	
+		List<List> oneCardTransList = new ArrayList<List>();
+		//查询列表数据
+		Map <String ,Object> map =null;
+		map =  new HashMap<String ,Object>();
+		/*SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");  
+		Date date = sdf.parse(createTime);*/
+			map.put("startTime", startTime);
+			map.put("endTime",endTime);
+			map.put("account", account);
+			
+			List<OneCardEntity> oneCardList=oneCardService.queryList(map);
+			if(null==oneCardList||oneCardList.size()==0) {
+			}else {
+				oneCardTransList.add(oneCardList);
+			}
+	return R.ok().put("oneCardTransList", oneCardTransList);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}

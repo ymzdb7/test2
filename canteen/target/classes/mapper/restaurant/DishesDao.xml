@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.DishesDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.DishesEntity">
+		select * from t_dishes
+		<where>
+			<if test="dishes != null and dishes.trim() != ''">
+				and `dishes` like concat('%',#{dishes},'%') 
+			</if>
+			<!-- <if test="address != null and address.trim() != ''">
+				and address = #{address}
+			</if>  -->
+			
+				<if test="dishess != null and dishess.trim() != ''">
+				and dishes = #{dishess}
+			</if>
+				<if test="typeName != null and typeName.trim() != ''">
+				and type_name = #{typeName}
+			</if>
+		</where>
+		
+		order by id 
+		desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+		<select id="typeDish" resultType="com.winhands.modules.restaurant.entity.DishesEntity">
+		select * from t_dishes where dishes in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	
+	
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	<select id="querySelList" resultType="com.winhands.modules.restaurant.entity.DishesEntity">
+		select t2.* ,tt1.is_recom isRecom ,tt1.recom_num recomNum from 
+			(select t1.* from t_dish_carte t1 
+				<where>
+				<if test="carteId != null ">
+					and carte_id = #{carteId}
+				</if> 
+				</where>
+			)
+			tt1
+			right JOIN  
+			(select * from t_dishes
+				<where>
+			<!-- 	<if test="address != null and address.trim() != ''">
+					and address = #{address}
+				</if>  -->
+				<if test="typeName != null and typeName.trim() != ''">
+				and type_name = #{typeName}
+			</if>
+				</where>
+			) t2 
+			on tt1.dishes_id = t2.id 
+			order by t2.id 
+			desc
+		
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	<select id="queryDishList" resultType="com.winhands.modules.restaurant.entity.DishesEntity">
+	<!-- 	select t2.*,t1.recom_num  recomNum from t_dish_carte t1,t_dishes t2
+		where carte_id = #{carteId}
+		and t1.dishes_id = t2.id -->
+		
+		
+		select t2.* from t_dish_carte t1,t_dishes t2
+		where carte_id = #{carteId} and type_name =#{typeName}
+		and t1.dishes_id = t2.id
+	</select>
+
+
+	
+	
+	
+	
+	<select id="queryObject" resultType="com.winhands.modules.restaurant.entity.DishesEntity">
+		select * from t_dishes where id = #{id}
+	</select>
+	
+	<select id="queryTotal" resultType="int">
+		select count(*) from t_dishes
+			
+			<where>
+			<if test="typeName != null and typeName.trim() != ''">
+					and type_name = #{typeName}
+				</if>  
+				
+				</where>
+	</select>
+	
+	<select id="querySelTotal" resultType="int">
+		select count(*) recomNum from
+		(select t2.* ,tt1.is_recom isRecom ,tt1.recom_num recomNum from 
+			(select t1.* from t_dish_carte t1 
+				<where>
+				<if test="carteId != null ">
+					and carte_id = #{carteId}
+				</if> 
+				</where>
+			)
+			tt1
+			right JOIN  t_dishes t2 
+			on tt1.dishes_id = t2.id )tt1
+	</select>
+	
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.DishesEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into t_dishes
+		(
+			`id`, 
+			`dishes`, 
+			`dishes_pic_path`,
+			`dishes_pic_name`,
+			`batching`, 
+			`detail_html`, 
+			`dishes_detail`, 
+			`keyword`,
+			`address`,
+			`create_user_id`,
+			`type_name`
+		)
+		values
+		(
+			#{id}, 
+			#{dishes}, 
+			#{dishesPicPath},
+			#{dishesPicName},
+			#{batching}, 
+			#{detailHtml}, 
+			#{dishesDetail}, 
+			#{keyword},
+			#{address},
+			#{createUserId},
+			#{typeName}
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.winhands.modules.restaurant.entity.DishesEntity">
+		update t_dishes 
+		<set> 
+			<if test="dishes != null">`dishes` = #{dishes}, </if>
+			<if test="dishesPicPath != null">`dishes_pic_path` = #{dishesPicPath}, </if>
+			<if test="dishesPicName != null">`dishes_pic_name` = #{dishesPicName}, </if>
+			<if test="batching != null">`batching` = #{batching}, </if>
+			<if test="dishesDetail != null">`dishes_detail` = #{dishesDetail}, </if>
+			<if test="keyword != null">`keyword` = #{keyword}, </if>
+			<if test="detailHtml != null">`detail_html` = #{detailHtml},</if>
+			<if test="recomNum != null">`recom_num` = #{recomNum},</if>
+		</set>
+		where id = #{id} 
+	</update>
+	
+	<delete id="deleteBatch">
+		delete from t_dishes where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>

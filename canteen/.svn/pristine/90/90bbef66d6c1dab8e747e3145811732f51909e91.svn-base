@@ -1,0 +1,35 @@
+package com.winhands.modules.restaurant.entity;
+
+import java.io.Serializable;
+
+public class AdDishesHeeEntity implements Serializable{
+
+	/**
+	 * 商品统计
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private Long advanceDishesId;//预定菜品id
+	private Integer counts;//所有订单菜品的总数量
+	private Integer counts1;//库存数量
+	
+	public Integer getCounts1() {
+		return counts1;
+	}
+	public void setCounts1(Integer counts1) {
+		this.counts1 = counts1;
+	}
+	public Long getAdvanceDishesId() {
+		return advanceDishesId;
+	}
+	public void setAdvanceDishesId(Long advanceDishesId) {
+		this.advanceDishesId = advanceDishesId;
+	}
+	public Integer getCounts() {
+		return counts;
+	}
+	public void setCounts(Integer counts) {
+		this.counts = counts;
+	}
+	
+}

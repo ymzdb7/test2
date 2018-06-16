@@ -1,0 +1,436 @@
+package com.winhands.modules.restaurant.controller;
+
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.winhands.common.annotation.SysLog;
+import com.winhands.common.utils.PageUtils;
+import com.winhands.common.utils.Query;
+import com.winhands.common.utils.R;
+import com.winhands.modules.restaurant.entity.DinnerOrdersEntity;
+import com.winhands.modules.restaurant.service.DinnerOrdersService;
+import com.winhands.modules.sys.controller.AbstractController;
+import com.winhands.modules.sys.entity.SysUserEntity;
+
+
+/**
+ * 订单管理
+ * 
+ */
+@RestController
+@RequestMapping("/restaurant/dinnerOrders")
+public class DinnerOrdersController extends AbstractController {
+	/*@Autowired
+	private SysUserRoleService sysUserRoleService;*/
+	/*@Autowired
+	private SysRoleService sysRoleService;*/
+	@Autowired
+	private DinnerOrdersService dinnerOrdersService;
+	@ResponseBody
+	@RequestMapping("/listNo")	
+	public R listNo(@RequestParam Map<String, Object> params){
+		//查询已审核列表数据
+		/*sysRoleService.queryObject(sysUserRoleService.queryObject(getUser().getUserId()).getRoleId()).getRoleName();*/
+		/*sysRoleService.queryObject(getUser().getRoleIdList().get(0)).getRoleName()*/
+		/*
+		if(getUser().getUsername().equals("admin")) {
+			params.put("status", "已审核");
+		}else {
+			params.put("status", "未审核");
+		}*/
+		
+		String timeNo=(String) params.get("timeNo");
+	
+	
+		
+		if(timeNo==null) {
+			
+			SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+			Date date=new Date();
+			String time1=sdf.format(date);
+			params.put("timeNo", time1);
+		}else {
+			
+			params.put("timeNo", timeNo);
+		}
+		
+
+			Query query = new Query(params);
+			List<DinnerOrdersEntity> dinnerOrdersList = dinnerOrdersService.queryList(query);
+			
+			int total = dinnerOrdersService.queryTotal(query);
+			
+			PageUtils pageUtil = new PageUtils(dinnerOrdersList, total, query.getLimit(), query.getPage());
+			
+			return R.ok().put("page", pageUtil);	
+			
+		}
+		
+		
+		
+	
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/list")	
+	public R list(@RequestParam Map<String, Object> params)  {
+		//查询已审核列表数据
+		/*sysRoleService.queryObject(sysUserRoleService.queryObject(getUser().getUserId()).getRoleId()).getRoleName();*/
+		/*sysRoleService.queryObject(getUser().getRoleIdList().get(0)).getRoleName()*/
+		
+		
+		if(getUser().getUsername().equals("admin")) {
+			params.put("status", "已审核");
+		}
+		String time=(String) params.get("time");
+		if(time==null) {
+			
+			SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+			Date date=new Date();
+			String time1=sdf.format(date);
+			params.put("time", time1);
+		}else {
+			
+			params.put("time", time);
+		}
+	
+			Query query = new Query(params);
+		List<DinnerOrdersEntity> dinnerOrdersList = dinnerOrdersService.queryList1(query);
+		int total = dinnerOrdersService.queryTotal2(query);
+		PageUtils pageUtil = new PageUtils(dinnerOrdersList, total, query.getLimit(), query.getPage());
+		return R.ok().put("page", pageUtil);
+		
+		
+	
+		}
+	
+	
+	
+	
+	
+	/**
+	 * 删除菜品
+	 */
+	@SysLog("删除订单")
+	@RequestMapping("/delete")
+	public R delete(@RequestBody Long[] ids){
+		dinnerOrdersService.deleteBatch(ids);
+		
+		return R.ok();
+	}
+	
+	
+	
+	/**
+	 * 审核通过
+	 */
+
+	@RequestMapping("/statusPass")
+	public R statusPass(@RequestBody Long[] ids){
+		
+	
+		DinnerOrdersEntity dy=new DinnerOrdersEntity();
+		for (int i = 0; i < ids.length; i++) {
+		dy=dinnerOrdersService.queryObject(ids[i]);
+		dy.setStatus("已审核");
+		dinnerOrdersService.update(dy);
+				
+			}
+		return R.ok();
+	}
+	
+
+	
+	
+	/**
+	 * 客户端获取订单状态预定接口
+	 */
+	@ResponseBody
+	@RequestMapping(value="/dinnerOrdersSave", method=RequestMethod.POST)
+	public R  dinnerOrdersSave() {
+	DinnerOrdersEntity order= new DinnerOrdersEntity();
+	SysUserEntity user=getUser();
+		try {
+			order.setCreateTime(Timestamp.valueOf(DateTime.now().toString("yyyy-MM-dd HH:mm:ss")));
+			order.setUserName(user.getUsername());
+			order.setAddress(user.getAddress());
+			order.setMobile(user.getMobile());
+			order.setDepartment(user.getDepartment());
+			order.setStatus("未审核");
+			dinnerOrdersService.save(order);
+		} catch (Exception e) {
+			return R.ok("晚餐预定失败!");
+		}
+		return R.ok("晚餐预定成功!");
+	
+	}
+	
+	/**
+	 * 客户端获取订单情况
+	 */
+	
+	@RequestMapping(value="/dinnerOrdersList" , method = RequestMethod.POST)
+	public R dinnerOrdersList(String createTime){
+	
+		
+		List<List> dinnerOrdersList = new ArrayList<List>();
+		//查询列表数据
+		Map <String ,Object> map=  new HashMap<String ,Object>();
+	
+		/*SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");  
+		Date date = sdf.parse(createTime);*/
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date date=new Date();
+		String time=sdf.format(date);
+		
+			map.put("createTime", createTime);
+			
+			List<DinnerOrdersEntity> ordersList=dinnerOrdersService.queryDateList(map);
+			if(null==ordersList||ordersList.size()==0) {
+			}else {
+				dinnerOrdersList.add(ordersList);
+			}
+		
+		
+	return R.ok1().put("dinnerOrdersList", dinnerOrdersList);
+	}
+	
+	/**
+	 * 客户端获取订餐用户名列表
+	 */
+	@RequestMapping(value="/dinnerOrdersUserList" , method = RequestMethod.POST)
+	public R dinnerOrdersUserList(String department){
+		
+		
+	List<List> dinnerOrdersList=new ArrayList<List>();
+	Map<String, Object> map=new HashMap<String,Object>();
+	Map<String, Object> dinnerOrdersMap=new HashMap<String,Object>();
+	
+		map.put("department",department);
+	
+	
+			
+			int total=dinnerOrdersService.queryTotal(map);
+			List<DinnerOrdersEntity> ordersList=dinnerOrdersService.queryList(map);
+
+			if(null==ordersList||ordersList.size()==0) { 
+			}else {
+				dinnerOrdersList.add(ordersList);
+				
+			}
+	
+		dinnerOrdersMap.put("total", total);
+		dinnerOrdersMap.put("dinnerOrdersList", dinnerOrdersList);
+		
+	return R.ok().put("dinnerOrdersMap", dinnerOrdersMap);
+	}
+	
+	/**
+	 * 客户端获取订餐部门人数
+	 */
+	
+	@RequestMapping(value="/dinnerOrdersCountList" , method = RequestMethod.POST)
+	public R msList(String departmentId){
+
+	Map<String, Object> map=new HashMap<String,Object>();
+	Map<String, Object> dinnerOrdersMap=new HashMap<String,Object>();
+	map.put("departmentId",Integer.parseInt(departmentId));
+			int total=dinnerOrdersService.queryTotal(map);
+			dinnerOrdersMap.put("total", total);
+	return R.ok().put("dinnerOrdersMap", dinnerOrdersMap);
+	}
+	
+	
+	/**
+	 * 客户端获取服务器时间
+	 */
+	
+	@RequestMapping(value="/dinnerOrdersTime" , method = RequestMethod.POST)
+	public R dinnerOrdersTime(String token){
+
+	Map<String, Object> orderMap=new HashMap<String,Object>();
+	SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	Date date=new Date();
+	String time=sdf.format(date);
+	orderMap.put("orderTime", time);
+	return R.ok().put("orderMap", orderMap);
+	
+	}
+	
+	@ResponseBody
+	@RequestMapping(value="/poiExpExcel" , method = RequestMethod.POST)	
+	public R poiExpExcel(@RequestBody String time,HttpServletResponse res)  {
+		Map<String, Object> map=new HashMap<String,Object>();
+		if(time!=null){
+		map.put("time", time);
+		}else {
+			map.put("time", "");
+		}
+			List<DinnerOrdersEntity> dyList= dinnerOrdersService.queryListDu(map);
+	
+		
+	String[] title={"姓名","部门id","属地","下单时间","状态"};
+		//创建Excel工作薄
+		HSSFWorkbook  workbook=new HSSFWorkbook();
+		//创建一个工作表
+		HSSFSheet sheet=workbook.createSheet();
+		//创建第一行
+		HSSFRow row=sheet.createRow(0);
+		HSSFCell cell=null;
+		//插入第一行数据id,name,sex
+		for (int i = 0; i < title.length; i++) {
+			cell=row.createCell(i);
+			cell.setCellValue(title[i]);
+		}
+		//追加数据
+		for (int i = 1; i <=dyList.size(); i++) {
+			HSSFRow nextrow=sheet.createRow(i);
+			HSSFCell cell2=nextrow.createCell(0);
+			
+			if(dyList.get(i-1).getUserName()==null) {
+				cell2.setCellValue("");
+			}else {
+				cell2.setCellValue(dyList.get(i-1).getUserName());
+			}
+			
+			cell2=nextrow.createCell(1);
+			if(dyList.get(i-1).getDepartment()==null) {
+				cell2.setCellValue("");
+			}else {
+				cell2.setCellValue(dyList.get(i-1).getDepartment());
+			}
+			
+			cell2=nextrow.createCell(2);
+			if(dyList.get(i-1).getAddress()==null) {
+				cell2.setCellValue("");
+			}else {
+				cell2.setCellValue(dyList.get(i-1).getAddress());
+			}
+		
+			SimpleDateFormat sdf=new SimpleDateFormat("yyyy/MM/dd");
+			cell2=nextrow.createCell(3);
+			if(dyList.get(i-1).getCreateTime()==null) {
+				cell2.setCellValue("");
+			}else {
+				cell2.setCellValue(sdf.format(dyList.get(i-1).getCreateTime()));
+			}
+			
+			cell2=nextrow.createCell(4);
+			if(dyList.get(i-1).getStatus()==null) {
+				cell2.setCellValue("");
+			}else {
+				cell2.setCellValue(dyList.get(i-1).getStatus());
+			}
+		
+		}
+		
+		//创建一个文件
+	
+	
+		try {
+			File file=new File("d:/department.xls");
+/*			System.out.println("--+++_______IIIIIOOOOOOOOOOOOOOOOOOOOOOOOOOOO"+InetAddress.getLocalHost().getHostAddress());
+*/			file.createNewFile();
+			//将Excell内容存盘
+			FileOutputStream stream=FileUtils.openOutputStream(file);
+			workbook.write(stream);
+			stream.close();
+			
+		/*String	path = "d:/department.xls";
+	        File file1 = new File(path);
+	       
+	            res.setContentType("multipart/form-data;charset=utf-8");
+	            String fileName = path.substring(path.lastIndexOf(File.separator)+1);
+	            res.setHeader("content-disposition", "attachment;filename="+URLEncoder.encode(fileName, "UTF-8"));
+	            InputStream in = new FileInputStream(file1);
+	            int len = 0;
+	            byte[] buffer = new byte[1024];
+	            OutputStream out = res.getOutputStream();
+	            while ((len = in.read(buffer)) > 0) {
+	                out.write(buffer,0,len);
+	            }
+	            in.close();*/
+			
+			
+		
+	     
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+			return R.ok();
+		
+		}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * 客户端获取部门主管提交状态
+	 */
+	@ResponseBody
+	@RequestMapping(value="/submitState", method=RequestMethod.POST)
+	public R  submitState(Long[] ids) {
+		try {
+	
+			dinnerOrdersService.updateState(ids);
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			return R.ok("提交失败!");
+		}
+	
+			return R.ok("提交成功!");
+		
+	}
+	
+	
+
+	
+	
+	
+	
+}

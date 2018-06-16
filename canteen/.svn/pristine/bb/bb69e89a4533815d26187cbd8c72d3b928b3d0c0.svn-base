@@ -1,0 +1,110 @@
+package com.winhands.modules.restaurant.controller;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.winhands.common.utils.PageUtils;
+import com.winhands.common.utils.Query;
+import com.winhands.common.utils.R;
+import com.winhands.modules.restaurant.entity.AdvanceDishesEntity;
+import com.winhands.modules.restaurant.entity.OrderEntity;
+import com.winhands.modules.restaurant.service.AdvanceDishesService;
+import com.winhands.modules.restaurant.service.OrderService;
+import com.winhands.modules.sys.controller.AbstractController;
+import com.winhands.modules.sys.entity.SysUserEntity;
+
+/**
+ * 订单管理
+ * 
+ */
+@RestController
+@RequestMapping("/restaurant/order")
+public class OrderController extends AbstractController {
+	@Autowired
+	private OrderService orderService;
+	@Autowired
+	private AdvanceDishesService advanceDishesService;
+	
+	
+	/**
+	 * 所有订单列表
+	 */
+	@ResponseBody
+	@RequestMapping("/list")
+	public R list(@RequestParam Map<String, Object> params){
+		//查询列表数据
+		Query query = new Query(params);
+		List<OrderEntity> orderList = orderService.queryList(query);
+		int total = orderService.queryTotal(query);
+		
+		PageUtils pageUtil = new PageUtils(orderList, total, query.getLimit(), query.getPage());
+		
+		return R.ok().put("page", pageUtil);
+	}
+	
+	
+	/**
+	 * 客户端提交订单接口,其中ids是多个商品id,counts是对应的数量
+	 */
+	@RequestMapping(value="/goodsListSave" , method = RequestMethod.POST)
+	public R goodsListSave(Long[] ids,Long[] counts,String[] advDishesPrice){
+		
+		//判断在客户下单的时候，后台管理员是否改动商品价格，如改动，则客户不可下单
+			boolean cg=false;
+			for (int i = 0; i < ids.length; i++) {
+				AdvanceDishesEntity advanceDishes=advanceDishesService.queryObject(ids[i]);
+				double gg=new BigDecimal(advDishesPrice[i]).doubleValue();
+				double g1g=advanceDishes.getAdvDishesPrice().doubleValue();
+				if(gg!=g1g) {
+					cg=true;
+					break;
+					}
+				}
+		
+		if(cg==true) {
+			return  R.ok("商品价格有变动，请您重新下订单!");
+		}else {
+			int id=0;
+		try {
+		
+		SysUserEntity user=getUser();
+		String uuid=getOrderIdByUUId();
+	
+		orderService.saveOo(ids, counts, advDishesPrice, user,uuid, id);
+		
+		} catch (Exception e) {
+			// TODO: handle exception
+			return R.ok("下单失败！");
+		}
+		return R.ok("下单成功!").put("orderId", id);
+		}
+	}	
+	
+	
+	
+
+	  public static String getOrderIdByUUId() {
+        int machineId = 1;//最大支持1-9个集群机器部署
+        int hashCodeV = UUID.randomUUID().toString().hashCode();
+        if(hashCodeV < 0) {//有可能是负数
+            hashCodeV = - hashCodeV;
+        }
+        // 0 代表前面补充0     
+        // 4 代表长度为4     
+        // d 代表参数为正数型
+        return machineId + String.format("%015d", hashCodeV);
+    }
+	
+	
+	
+	
+}

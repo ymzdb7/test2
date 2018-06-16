@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.DinnerPlanDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.DinnerPlanEntity">
+		select * from t_dinner_plan 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	<select id="queryObject" resultType="com.winhands.modules.restaurant.entity.DinnerPlanEntity">
+		select * from t_dinner_plan where id = #{id}
+	</select>
+	
+	<select id="queryTotal" resultType="int">
+		select count(*) from t_dinner_plan
+	</select>
+	
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.DinnerPlanEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into t_dinner_plan
+		(
+			`id`, 
+			`dishes_id`, 
+			`flow`,
+			`surplus_num`,
+			`create_date`, 
+			`create_user_id`, 
+			`plan_time_start`, 
+			`plan_time_end`
+		)
+		values
+		(
+			#{id}, 
+			#{dishesId}, 
+			#{flow},
+			#{surplusNum},
+			#{createDate}, 
+			#{createUserId}, 
+			#{planTimeStart}, 
+			#{planTimeEnd}
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.winhands.modules.restaurant.entity.DinnerPlanEntity">
+		update t_dinner_plan 
+		where id = #{id} 
+	</update>
+	
+	<delete id="deleteBatch">
+		delete from t_dinner_plan where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>

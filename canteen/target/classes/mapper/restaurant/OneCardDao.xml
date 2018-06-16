@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.OneCardDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.OneCardEntity">
+		select * ,0 as isRecom from t_one_card
+		<where>
+			<if test="employeeNo != null and employeeNo.trim() != ''">
+				and `employee_no` like concat('%',#{employeeNo},'%') 
+			</if>
+			<if test="transTime !=null">
+			and DATE_FORMAT(trans_time,"%Y-%m-%d")=DATE_FORMAT(#{transTime},"%Y-%m-%d")
+			</if>
+			<if test="account != null and account.trim() != ''">
+				and account = #{account}
+			</if>
+	 <if test="startTime !=null">
+		<![CDATA[	and DATE_FORMAT(trans_time,"%Y-%m-%d") >= DATE_FORMAT(#{startTime},"%Y-%m-%d")]]>  
+			</if>
+			<if test="endTime !=null">
+		 <![CDATA[	and DATE_FORMAT(trans_time,"%Y-%m-%d") <= DATE_FORMAT(#{endTime},"%Y-%m-%d") ]]>  
+			</if>
+		</where>
+		order by id desc 
+		
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	
+	<select id="queryListEmMoCou" resultType="com.winhands.modules.restaurant.entity.EmMoneyCountsEntity">
+		SELECT id,employee_no as employeeNo,SUM(trans_money) as transMoney,trans_time as transTime from t_one_card 
+		<where>
+			<if test="transTime !=null">
+			and DATE_FORMAT(trans_time,'%Y-%m') =#{transTime}
+			</if>
+		</where>
+		group by employee_no order by employee_no+0  
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	<select id="queryTotalEmMoCou" resultType="int">
+		SELECT count(*) FROM (SELECT employee_no as employeeNo,SUM(trans_money) as transMoney from t_one_card  
+		<where>
+			<if test="transTime !=null">
+			and DATE_FORMAT(trans_time,'%Y-%m') =#{transTime}
+			</if>
+		</where>
+		
+		group by employee_no) abc
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	<select id="querySelList" resultType="com.winhands.modules.restaurant.entity.OneCardEntity">
+		select t2.* ,tt1.is_recom isRecom ,tt1.recom_num recomNum from 
+			(select t1.* from  t_one_card t1 
+				<where>
+				<if test="carteId != null ">
+					and carte_id = #{carteId}
+				</if> 
+				</where>
+			)
+			tt1
+			right JOIN  
+			(select * from t_dishes
+				<where>
+				<if test="address != null and address.trim() != ''">
+					and address = #{address}
+				</if> 
+				</where>
+			) t2 
+			on tt1.dishes_id = t2.id 
+			order by t2.id 
+			desc
+		
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	<select id="queryDishList" resultType="com.winhands.modules.restaurant.entity.OneCardEntity">
+		select t2.*,t1.recom_num recomNum from  t_one_card t1,t_dishes t2
+		where carte_id = #{carteId}
+		and t1.dishes_id = t2.id
+	</select>
+	<select id="queryObject" resultType="com.winhands.modules.restaurant.entity.OneCardEntity">
+		select * from t_dishes where id = #{id}
+	</select>
+	
+	<select id="queryTotal" resultType="int">
+		select count(*) from t_one_card
+	</select>
+	
+	<select id="querySelTotal" resultType="int">
+		select count(*) recomNum from
+		(select t2.* ,tt1.is_recom isRecom ,tt1.recom_num recomNum from 
+			(select t1.* from  t_one_card t1 
+				<where>
+				<if test="carteId != null ">
+					and carte_id = #{carteId}
+				</if> 
+				</where>
+			)
+			tt1
+			right JOIN  t_dishes t2 
+			on tt1.dishes_id = t2.id )tt1
+	</select>
+	
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.OneCardEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into  t_one_card
+		(
+			`id`, 
+			`dishes`, 
+			`dishes_pic_path`,
+			`dishes_pic_name`,
+			`batching`, 
+			`detail_html`, 
+			`dishes_detail`, 
+			`keyword`,
+			`address`,
+			`create_user_id`
+		)
+		values
+		(
+			#{id}, 
+			#{dishes}, 
+			#{dishesPicPath},
+			#{dishesPicName},
+			#{batching}, 
+			#{detailHtml}, 
+			#{dishesDetail}, 
+			#{keyword},
+			#{address},
+			#{createUserId}
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.winhands.modules.restaurant.entity.OneCardEntity">
+		update  t_one_card 
+		<set> 
+			<if test="dishes != null">`dishes` = #{dishes}, </if>
+			<if test="dishesPicPath != null">`dishes_pic_path` = #{dishesPicPath}, </if>
+			<if test="dishesPicName != null">`dishes_pic_name` = #{dishesPicName}, </if>
+			<if test="batching != null">`batching` = #{batching}, </if>
+			<if test="dishesDetail != null">`dishes_detail` = #{dishesDetail}, </if>
+			<if test="keyword != null">`keyword` = #{keyword}, </if>
+			<if test="detailHtml != null">`detail_html` = #{detailHtml},</if>
+		</set>
+		where id = #{id} 
+	</update>
+	
+	<delete id="deleteBatch">
+		delete from  t_one_card where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>

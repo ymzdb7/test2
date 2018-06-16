@@ -1,0 +1,346 @@
+package com.winhands.modules.restaurant.controller;
+
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.winhands.common.utils.PageUtils;
+import com.winhands.common.utils.Query;
+import com.winhands.common.utils.R;
+import com.winhands.modules.restaurant.entity.AdDishesHeEntity;
+import com.winhands.modules.restaurant.entity.AdDishesHeeEntity;
+import com.winhands.modules.restaurant.entity.AdvanceDishesEntity;
+import com.winhands.modules.restaurant.entity.OrderAdDishesHeEntity;
+import com.winhands.modules.restaurant.entity.OrderAdvanceDishesEntity;
+import com.winhands.modules.restaurant.entity.OrderEntity;
+import com.winhands.modules.restaurant.service.AdvanceDishesService;
+import com.winhands.modules.restaurant.service.OrderAdvanceDishesService;
+import com.winhands.modules.restaurant.service.OrderService;
+import com.winhands.modules.sys.controller.AbstractController;
+import com.winhands.modules.sys.entity.SysUserEntity;
+
+/**
+ * 订单管理
+ * 
+ */
+@RestController
+@RequestMapping("/restaurant/order")
+public class OrderController extends AbstractController {
+	@Autowired
+	private OrderService orderService;
+	@Autowired
+	private AdvanceDishesService advanceDishesService;
+	@Autowired
+	private OrderAdvanceDishesService  orderAdvanceDishesService;
+	
+	
+	/**
+	 * 所有订单列表
+	 */
+	@ResponseBody
+	@RequestMapping("/list")
+	public R list(@RequestParam Map<String, Object> params){
+		//查询列表数据
+		params.put("orderState1", "预定成功");
+		
+			if(getUser()!=null&&getUser().getAddress()!=null&&!getUser().getAddress().trim().equals("")) {
+				params.put("address", getUser().getAddress());
+			}
+		
+		
+		Query query = new Query(params);
+		List<OrderEntity> orderList = orderService.queryList(query);
+		int total = orderService.queryTotal(query);
+		
+		PageUtils pageUtil = new PageUtils(orderList, total, query.getLimit(), query.getPage());
+		
+		return R.ok().put("page", pageUtil);
+	}
+	
+	
+	/**
+	 * 客户端菜品预定提交订单接口,其中ids是多个菜品id,counts是对应的数量
+	 */
+	@RequestMapping(value="/adGoodsListSave" , method = RequestMethod.POST)
+	public R goodsListSave(Long[] ids,Long[] counts,String[] advDishesPrice){
+		
+		//判断在客户下单的时候，后台管理员是否改动商品价格，如改动，则客户不可下单
+			boolean cg=false;
+			//判断在客户下单的时候,菜品是否下架了
+			boolean db7=false;
+			//判断在客户下单的时候,菜品是否被删除了
+			boolean  db8=false;
+			//判断在客户下单的时候,菜品的下单数量是否大于库存数量
+			boolean ymz=false;
+			
+			int totalCounts=0;//初始化总数量，后面作判断用
+			int counts1=0;//初始化下单数量，后面与总数量作比较
+			String advDishes=null;
+			
+			for (int i = 0; i < ids.length; i++) {
+				AdvanceDishesEntity advanceDishes=advanceDishesService.queryObject(ids[i]);
+				String cccc=advanceDishes.getAdDishesStatus();
+				String  dddd=advanceDishes.getDeleteState();
+				advDishes=advanceDishes.getAdvanceDishes();
+				 totalCounts=advanceDishes.getCounts();
+				 counts1=new Long(counts[i]).intValue();
+				
+				//判断在客户下单的时候，后台管理员是否改动商品价格，如改动，则客户不可下单
+				double gg=new BigDecimal(advDishesPrice[i]).doubleValue();
+				double g1g=advanceDishes.getAdvDishesPrice().doubleValue();
+				if(gg!=g1g) {
+					cg=true;
+					break;
+					}
+				//判断在客户下单的时候,菜品是否下架了
+				if(cccc.trim().equals("1")) {
+					db7=true;
+					break;
+				}
+				
+				//判断在客户下单的时候,菜品是否被删除了
+				if(dddd.equals("1")) {
+					db8=true;
+					break;
+				}
+				
+				 
+				//判断下单商品数量是否大于库存数量
+				if(counts1>totalCounts) {
+					ymz=true;
+					break;
+				}
+				
+				}
+			if(db7){
+				return  R.error(advDishes+"该菜品已下架！");
+			}else if(db8) {
+				return  R.error(advDishes+"该菜品已删除！");
+			}else if(cg==true) {
+			return  R.error(advDishes+"菜品价格有变动，请您重新下订单!");
+			}else if(ymz){
+				return  R.error(advDishes+"下单数量大于库存数量，请您重新下订单！");
+			}else {
+			Long id=0L;
+			try {
+		
+		SysUserEntity user=getUser();
+		String uuid=getOrderIdByUUId();
+		id=orderService.saveOo(ids, counts, advDishesPrice, user,uuid, id);
+		
+		
+		} catch (Exception e) {
+			// TODO: handle exception
+			return R.ok("下单失败！");
+		}
+		return R.ok("下单成功!").put("orderId", id);
+		}
+	}	
+	
+	
+	
+	/**
+	 * 客户端获取预定菜品订单详情列表
+	 */
+	@RequestMapping(value="/orderAdDishesList" , method = RequestMethod.POST)
+	public R orderGoodsList(){
+		Map<String, Object> oGmap=new HashMap<String,Object>();
+		List<OrderEntity> list=new ArrayList<OrderEntity>();
+		Map<String, Object> map=new HashMap<String,Object>();
+		Map<String, Object> map1=new HashMap<String,Object>();//新增的
+		map1.put("userId", getUser().getUserId());
+	
+		List<OrderEntity> orderList=orderService.queryList(map1);
+		if(orderList!=null&&orderList.size()!=0) {
+			for (int i = 0; i < orderList.size(); i++) {
+				BigDecimal allPrice = new BigDecimal(0);  
+				map.put("orderId", orderList.get(i).getId());	
+				List<OrderAdDishesHeEntity> adDishesHe=orderService.queryListO(map); 
+					if(adDishesHe!=null&&adDishesHe.size()!=0) {
+						for (int j = 0; j < adDishesHe.size(); j++) {
+						if(adDishesHe.get(j).getTotalPrice()!=null) {
+							allPrice=allPrice.add(adDishesHe.get(j).getTotalPrice());
+						}
+						
+						}
+						
+					orderList.get(i).setOrderAdDishesHe(adDishesHe);
+					
+						list.add(orderList.get(i));
+					}
+					orderList.get(i).setAllPrice(allPrice);
+				}
+			}
+	
+		oGmap.put("list", list);
+		return R.ok().put("oGmap", oGmap);
+	}	
+	
+	
+	/**
+	 * 客户端取消订单(回退数量)
+	 */
+	@RequestMapping(value="/orderNo" , method = RequestMethod.POST)
+	public R orderNo(String id){
+		Long id1=Long.valueOf(id);
+		try {
+			Map<String, Object> map=new HashMap<String,Object>();
+			map.put("orderId",id);
+			
+			List<OrderAdvanceDishesEntity> orderAdDishes=orderAdvanceDishesService.queryList(map); 
+			for (int i = 0; i < orderAdDishes.size(); i++) {
+			long idd=(long)orderAdDishes.get(i).getAdvanceDishesId();
+			AdvanceDishesEntity advanceDishes=advanceDishesService.queryObject(idd);
+				//回退数量
+			int cc=orderAdDishes.get(i).getCount()+advanceDishes.getCounts();
+			advanceDishes.setCounts(cc);
+			advanceDishesService.updateO(advanceDishes);
+			OrderEntity order =orderService.queryObject(id1);
+			order.setOrderState("订单取消");
+			orderService.update(order);
+		}
+		} catch (Exception e) {
+			// TODO: handle exception
+			return R.error("取消订单失败！");
+		}
+		
+		return R.ok("取消订单成功！");
+	}	
+	
+	
+	/**
+	 * 获取订单状态
+	 */
+	@RequestMapping("/orderState1/{id}")
+	public R orderState1(@PathVariable("id")String id){
+		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("id", Long.parseLong(id));
+		OrderEntity order=orderService.queryObjectMa(map);
+		return R.ok().put("order11", order);
+	}
+	
+	/**
+	 * 修改订单状态为交易成功
+	 */
+	@RequestMapping("/updateState1/{id}")
+	public R updateState1(@PathVariable("id")String id){
+		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("id", Long.parseLong(id));
+		OrderEntity order=orderService.queryObjectMa(map);
+		
+		if(order.getOrderState().equals("预定成功")) {
+				order.setOrderState("交易成功");
+				orderService.update(order);
+					return R.ok();
+				}else {
+					return R.error("只可对订单状态交易成功进行操作!");
+				}
+	
+	}
+	
+	
+
+	/**
+	 * 修改订单状态为订单取消，并且回退下单数量到库存数量
+	 */
+	@RequestMapping("/updateState2/{id}")
+	public R updateState2(@PathVariable("id")String id) {
+				
+		//查询订单实体
+				Map<String,Object> map1=new HashMap<String,Object>();
+				map1.put("id", Long.parseLong(id));
+				OrderEntity order=orderService.queryObjectMa(map1);
+				if(order.getOrderState().equals("预定成功")||order.getOrderState().equals("交易成功")) {//只有当订单状态为预定成功、交易成功时才可进行订单取消操作，此处作判断
+							order.setOrderState("订单取消");
+							//回退数量
+						try {
+							Map<String, Object> map=new HashMap<String,Object>();
+							map.put("orderId",id);
+							List<OrderAdvanceDishesEntity> orderAdDishes=orderAdvanceDishesService.queryList(map); 
+							for (int i = 0; i < orderAdDishes.size(); i++) {
+							long idd=(long)orderAdDishes.get(i).getAdvanceDishesId();
+							AdvanceDishesEntity adDishes=advanceDishesService.queryObject(idd);
+								//回退数量
+							int cc=orderAdDishes.get(i).getCount()+adDishes.getCounts();
+							adDishes.setCounts(cc);
+							advanceDishesService.updateO(adDishes);
+						
+							}
+							orderService.update(order);
+				
+						} catch (Exception e) {
+							// TODO: handle exception
+							return R.error("订单取消失败！");
+						}
+		
+		                    return R.ok("订单取消成功！");
+					}else {
+						return R.error("只可对订单状态预定成功、交易成功进行操作!");
+					}
+		
+		}
+	
+	
+	/**
+	 *查看订单详情
+	 */
+	@ResponseBody
+	@RequestMapping("/detail")
+	public R detail(Long id){	
+		//查询订单信息和商品信息，近回到前台展示
+ 		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("id", new Long(id).intValue());
+				OrderEntity order=orderService.queryObjectMa(map);
+				List<AdDishesHeEntity> adDishesHe=orderAdvanceDishesService.queryListG(map);
+		return R.ok().put("adDishes", adDishesHe).put("order", order);
+	}
+	
+	
+	/**
+	 *查看历史订单
+	 */	
+	@ResponseBody
+	@RequestMapping("/hisOrder")
+	public R hisOrder(){	
+		//查询订单信息和商品信息，近回到前台展示
+ 		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("orderState", "预定成功");
+				List<OrderEntity> orderList=orderService.queryList(map);		
+		return R.ok().put("orderList", orderList);
+	}
+	
+	
+	/**
+	 *商品统计
+	 */	
+	@ResponseBody
+	@RequestMapping("/adDishesAdd")
+	public R adDishesAdd(){	
+		List<AdDishesHeeEntity> adDishesHeeList=orderService.queryListOo();		
+		return R.ok().put("adDishesHeeList", adDishesHeeList);
+	}
+	
+	
+	
+	
+	  public static String getOrderIdByUUId() {
+				SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmmss");
+				String dateTime	=sdf.format(new Date());
+			  return dateTime;
+	  	     
+	      }
+		
+}

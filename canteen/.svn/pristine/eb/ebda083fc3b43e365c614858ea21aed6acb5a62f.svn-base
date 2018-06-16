@@ -1,0 +1,64 @@
+package com.winhands.modules.restaurant.controller;
+
+import java.util.List;
+import java.util.Map;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.winhands.common.utils.PageUtils;
+import com.winhands.common.utils.Query;
+import com.winhands.common.utils.R;
+
+
+import com.winhands.modules.restaurant.entity.EnviroTalkEntity;
+import com.winhands.modules.restaurant.service.EnviroTalkService;
+import com.winhands.modules.sys.controller.AbstractController;
+
+
+/**
+ * 环境评价管理
+ * 
+ */
+
+@RestController
+@RequestMapping("/restaurant/enviroTalk")
+public class EnviroTalkController  extends AbstractController{
+	@Autowired
+	private EnviroTalkService enviroTalkService;
+	//获取环境评价列表
+
+	@ResponseBody
+	@RequestMapping("/list")	
+	public R list(@RequestParam Map<String, Object> params){
+		//查询列表数据
+		Query query = new Query(params);
+		List<EnviroTalkEntity> enTalkList = enviroTalkService.queryList(query);
+		int total = enviroTalkService.queryTotal(query);
+		
+		PageUtils pageUtil = new PageUtils(enTalkList, total, query.getLimit(), query.getPage());
+		
+		return R.ok().put("page", pageUtil);
+	}
+	
+
+	/**
+	 * 删除环境评价
+	 */
+	@RequestMapping("/delete")
+	public R delete(@RequestBody Long[] ids){
+		enviroTalkService.deleteBatch(ids);
+		return R.ok();
+	}
+	
+	
+	
+	
+	
+	
+}

@@ -1,0 +1,84 @@
+package com.winhands.modules.restaurant.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+public class OneCardEntity implements Serializable {
+/**
+	 * 
+	 */
+private static final long serialVersionUID = 1L;
+private Integer id;//表ID
+private Integer transType;//交易类型，0发卡1挂失2解挂3补卡5现金充值6旧卡余额补登7补贴领取8现金消费9无卡注销10退卡11现金退款12补助领取13补助消费
+private String terminalNo;//终端编号
+private Integer account;//帐号
+private String employeeNo;//员工编号
+private String cardSn;//卡序列号
+private Integer cardNo;//卡号
+private Integer transState;//交易状态,0失败，1成功
+private Date transTime;//交易时间
+private Integer transMoney;//交易金额
+public Integer getId() {
+	return id;
+}
+public void setId(Integer id) {
+	this.id = id;
+}
+public Integer getTransType() {
+	return transType;
+}
+public void setTransType(Integer transType) {
+	this.transType = transType;
+}
+public String getTerminalNo() {
+	return terminalNo;
+}
+public void setTerminalNo(String terminalNo) {
+	this.terminalNo = terminalNo;
+}
+public Integer getAccount() {
+	return account;
+}
+public void setAccount(Integer account) {
+	this.account = account;
+}
+public String getEmployeeNo() {
+	return employeeNo;
+}
+public void setEmployeeNo(String employeeNo) {
+	this.employeeNo = employeeNo;
+}
+public String getCardSn() {
+	return cardSn;
+}
+public void setCardSn(String cardSn) {
+	this.cardSn = cardSn;
+}
+public Integer getCardNo() {
+	return cardNo;
+}
+public void setCardNo(Integer cardNo) {
+	this.cardNo = cardNo;
+}
+public Integer getTransState() {
+	return transState;
+}
+public void setTransState(Integer transState) {
+	this.transState = transState;
+}
+public Date getTransTime() {
+	return transTime;
+}
+public void setTransTime(Date transTime) {
+	this.transTime = transTime;
+}
+public Integer getTransMoney() {
+	return transMoney;
+}
+public void setTransMoney(Integer transMoney) {
+	this.transMoney = transMoney;
+}
+
+	
+	
+}

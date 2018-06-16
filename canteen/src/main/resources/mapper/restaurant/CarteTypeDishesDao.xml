@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.CarteTypeDishesDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.CarteTypeDishesEntity">
+		select 
+			IFNULL(di.type_name,'') AS typeName,
+			di.dishes_pic_path as dishesPicPath,
+			di.dishes_pic_name as dishesPicName,
+			di.detail_html as detailHtml,
+			di.dishes_detail as dishesDetail,
+			di.create_user_id as createUserId,
+			di.recom_num as recomNum,
+			ctd.id as id,
+			di.id as dishesId,
+			di.dishes as dishes 
+		from t_carte_type_dishes ctd
+		left join t_dishes di  on ctd.dishes_id=di.id
+		<where>
+		<if test="dishes != null and dishes.trim() != ''">
+		and `dishes` like concat('%',#{dishes},'%')
+		</if>
+		<if test="carteId != null">
+		and `carte_id` =#{carteId}
+		</if>
+		</where>
+		order by ctd.id 
+		desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	<!-- 根据菜单查菜品，去丛 -->
+	<select id="queryListByDishes" resultType="com.winhands.modules.restaurant.entity.CarteTypeDishesEntity">
+		select 
+			di.type_name as typeName,
+			di.dishes_pic_path as dishesPicPath,
+			di.dishes_pic_name as dishesPicName,
+			di.detail_html as detailHtml,
+			di.dishes_detail as dishesDetail,
+			di.create_user_id as createUserId,
+			ctd.id as id, 
+			di.id as dishesId,
+			di.dishes as dishes 
+		from t_carte_type_dishes ctd
+		left join t_dishes di  on ctd.dishes_id=di.id
+		<where>
+		<if test="carteId != null">
+			and `carte_id` =#{carteId}
+		</if>
+		</where>
+			GROUP BY ctd.dishes_id order by di.type_name 
+		desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	
+	
+	<select id="queryTotal" resultType="int">
+		select count(*) from t_carte_type_dishes where  `carte_id` =#{carteId}
+	
+	</select>
+
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.CarteTypeDishesEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into t_carte_type_dishes
+		(
+			`carte_id`, 
+		 	`dishes_id`
+		)
+		values
+		(
+			#{carteId}, 
+			#{dishesId}
+		)
+	</insert>
+	
+		<delete id="deleteBatch">
+		delete from t_carte_type_dishes where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+		<delete id="deleteBatchDishesId">
+		delete from t_carte_type_dishes where dishes_id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+
+	
+	
+<delete id="delete">
+		delete from t_carte_type_dishes where carte_id =#{id}
+	</delete>
+	
+</mapper>

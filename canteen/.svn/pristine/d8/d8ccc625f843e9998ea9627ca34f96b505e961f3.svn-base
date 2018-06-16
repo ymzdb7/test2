@@ -1,0 +1,177 @@
+
+var content;
+var curWwwPath=window.document.location.href;
+var pathName=window.document.location.pathname;
+var pos=curWwwPath.indexOf(pathName);
+var localhostPath=curWwwPath.substring(0,pos);
+$(document).ready(function () {
+	
+    $("#jqGrid").jqGrid({
+        url: baseURL + 'restaurant/order/list',
+        datatype: "json",
+        colModel: [			
+    		{ label: 'id', name: 'id', width: 20, key: true},
+			{ label: '订单收货人', name: 'orConsignee', width: 30 },
+    		{ label: '电话', name: 'orderPhone', width: 50 }, 
+			{ label: '下单时间', name: 'orderTime', width: 50 }, 
+			{ label: '属地', name: 'address', width: 50 }, 
+			{ label: '订单号', name: 'orderNumber', width: 50 },
+			
+
+			{ label: '订单状态', name: 'orderState', width: 30,formatter:function(value,options,row){
+				if(value==1){
+					
+					return '<span>预定成功</span>'
+				}
+				if(value==2){
+					
+					return '<span>交易成功</span>'
+				}
+				if(value==3){
+					
+					return '<span>订单取消</span>'
+				}
+			}},
+			
+			
+			{ label: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;详情', name: 'id', width: 30, formatter: function(value, options, row){
+				var detail="<input type='button' value='查看'  onclick='btn_detail(\""+ value + "\")'>";
+                return "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+detail;
+			}},
+			{ label: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;操&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;作', name: 'id', width: 60, formatter: function(value, options, row){
+				var updateState1="<input type='button' value='交易成功'  onclick='updateState1(\""+ value + "\")'>";
+				var updateState2="<input type='button' value='订单取消'  onclick='updateState2(\""+ value + "\")'>";
+                return "&nbsp;&nbsp;&nbsp;"+updateState1+"&nbsp;&nbsp;"+updateState2;
+			}}
+		
+        ],
+		viewrecords: true,
+        height: 385,
+        rowNum: 10,
+		rowList : [10,30,50],
+        rownumbers: true, 
+        rownumWidth: 25, 
+        autowidth:true,
+        multiselect: true,
+        pager: "#jqGridPager",
+        jsonReader : {
+    
+            root: "page.list",
+            page: "page.currPage",
+            total: "page.totalPage",
+            records: "page.totalCount"
+        },
+        prmNames : {
+            page:"page", 
+            rows:"limit", 
+            order: "order"
+        },
+        gridComplete:function(){
+        	//隐藏grid底部滚动条
+        	$("#jqGrid").closest(".ui-jqgrid-bdiv").css({ "overflow-x" : "hidden" }); 
+        }
+    });
+});
+
+
+var vm = new Vue({
+	el:'#rrapp',
+	data:{
+		q:{
+			typeName: null
+		},
+		showList: true,
+		title:null,
+		orderState:["预定成功","交易成功","订单取消"]
+	},
+	methods: {
+		query: function () {
+			vm.reload();
+		},
+	/*	add: function(){
+			vm.showList = false;
+			vm.title = "新增";
+			vm.type = {};
+	},*/
+		/*update: function () {
+			var id = getSelectedRow();
+			if(id == null){
+				return ;
+			}
+			
+            $.get(baseURL + "restaurant/type/info/"+id, function(r){
+                vm.showList = false;
+                vm.title = "修改";
+                console.log("type:",r.type);
+                vm.type = r.type;
+              });
+		},	*/
+		/*del: function () {
+			var ids = getSelectedRows();
+			if(ids == null){
+				return ;
+			}
+			
+			var boo=confirm('确定要删除选中的记录？');
+        	if(boo==true){
+				$.ajax({
+					type: "POST",
+				    url: baseURL + "restaurant/type/delete",
+                    contentType: "application/json",
+				    data: JSON.stringify(ids),
+				    success: function(r){
+						if(r.code == 0){
+							alert('操作成功');
+                              vm.reload();
+							
+						}else{
+							alert(r.msg);
+						}
+					}
+				});
+	
+        	}
+		},*/
+		
+	
+	/*	saveOrUpdate: function () {
+            if(vm.validator()){
+                return ;
+            }
+          
+			var url = vm.type.id == null ? "restaurant/type/save" : "restaurant/type/update";
+			var form = new FormData(document.getElementById("typeForm"));
+			$.ajax({
+				type: "POST",
+			    url: baseURL + url,
+			    data:form,
+			    contentType: false,
+			    processData:false,
+			    success: function(r){
+			    	if(r.code === 0){
+						alert('操作成功');
+							vm.reload();
+						
+					}else{
+						alert(r.msg);
+					}
+				}
+			});
+		},*/
+		reload: function (event) {
+			vm.showList = true;
+			var page = $("#jqGrid").jqGrid('getGridParam','page');
+			$("#jqGrid").jqGrid('setGridParam',{ 
+				postData:{'typeName': vm.q.typeName},
+                page:page
+            }).trigger("reloadGrid");
+		}/*,
+		validator: function () {
+		  if(isBlank(vm.type.typeName)){
+	                alert("菜品类型不能为空");
+	                return true;
+	       }
+        }*/
+	}
+});
+

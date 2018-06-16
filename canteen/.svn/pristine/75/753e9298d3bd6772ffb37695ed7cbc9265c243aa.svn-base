@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.AdvanceDishesDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.AdvanceDishesEntity">
+		select * from t_advance_dishes
+		<where>		                           
+			<if test="advanceDishes != null and advanceDishes.trim() != ''">
+				and `advance_dishes` like concat('%',#{advanceDishes},'%') 
+			</if>
+				<if test="typeId != null">
+				and   type_id = #{typeId}
+			</if>
+			<if test="deleteState != null  and deleteState.trim() != ''">
+				and  delete_state = #{deleteState}
+			</if>
+			<if test="address != null  and address.trim() != ''">
+				and  address = #{address}
+			</if>
+			<if test="adDishesStatus != null  and adDishesStatus.trim() != ''">
+				and  ad_dishes_status = #{adDishesStatus}
+			</if>
+		</where>
+		order by id 
+		desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+
+	<select id="queryTotal" resultType="int">
+		select count(*) from t_advance_dishes
+		<!-- 	
+			<where>
+			<if test="typeName != null and typeName.trim() != ''">
+					and type_name = #{typeName}
+				</if>  
+				
+				</where> -->
+	</select>
+
+	
+	<select id="queryObject" resultType="com.winhands.modules.restaurant.entity.AdvanceDishesEntity">
+		select * from t_advance_dishes where id = #{id}
+	</select>
+
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.AdvanceDishesEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into t_advance_dishes
+		(
+			`id`, 
+			`type_id`,
+			`advance_dishes`, 
+			`advance_dishes_pic_path`,
+			`advance_dishes_pic_name`,
+			`batching`, 
+			`advance_detail_html`, 
+			`instruction`,
+			`address`,
+			`adv_dishes_price`,
+			`ad_dishes_status`,
+			`price_counts`,
+			`calculate_name`,
+			`counts`,
+			`create_user_id`
+			
+		)
+		values
+		(
+			#{id}, 
+			#{typeId},
+			#{advanceDishes}, 
+			#{advanceDishesPicPath},
+			#{advanceDishesPicName},
+			#{batching}, 
+			#{advanceDetailHtml},  
+			#{instruction},
+			#{address},
+			#{advDishesPrice},
+			#{adDishesStatus},
+			#{priceCounts},
+			#{calculateName},
+			#{counts},
+			#{createUserId}
+			
+		)
+	</insert>
+	
+	
+		
+	<update id="update" parameterType="com.winhands.modules.restaurant.entity.AdvanceDishesEntity">
+		update t_advance_dishes 
+		<set> 
+			<if test="advanceDishes != null">`advance_dishes` = #{advanceDishes}, </if>
+				<if test="typeId != null">`type_id` = #{typeId}, </if>
+			<if test="advanceDishesPicPath != null">`advance_dishes_pic_path` = #{advanceDishesPicPath}, </if>
+			<if test="advanceDishesPicName != null">`advance_dishes_pic_name` = #{advanceDishesPicName}, </if>
+			<if test="batching != null">`batching` = #{batching}, </if>
+			<if test="instruction != null">`instruction` = #{instruction}, </if>
+			<if test="advanceDetailHtml != null">`advance_detail_html` = #{advanceDetailHtml},</if>
+			<if test="counts != null">`counts` = #{counts},</if>
+			<if test="address != null">`address` = #{address},</if>
+			<if test="advDishesPrice != null">`adv_dishes_price` = #{advDishesPrice},</if>
+			<if test="adDishesStatus != null">`ad_dishes_status` = #{adDishesStatus},</if>
+			<if test="priceCounts != null">`price_counts` = #{priceCounts},</if>
+			<if test="calculateName != null">`calculate_name` = #{calculateName},</if>
+				<if test="counts != null">`counts` = #{counts},</if>
+			
+		</set>
+		where id = #{id} 
+	</update>
+	
+	
+	<update id="updateO" parameterType="com.winhands.modules.restaurant.entity.AdvanceDishesEntity">
+		update t_advance_dishes 
+		<set> 
+			<if test="counts != null">`counts` = #{counts}, </if>
+		</set>
+	where id = #{id} 
+	</update>
+	
+	
+	
+	<update id="updateBatch">
+			update t_advance_dishes set `delete_state` = '1' where id in 
+				<foreach item="id" collection="array" open="(" separator="," close=")">
+					#{id}
+				</foreach>
+		</update>
+	
+	
+	
+	
+	
+	<delete id="deleteBatch">
+		delete from t_advance_dishes where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

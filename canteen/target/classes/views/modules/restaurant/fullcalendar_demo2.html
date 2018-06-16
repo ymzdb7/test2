@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8' />
+<link href='../../libs/fullcalendar-3.4.0/fullcalendar.min.css' rel='stylesheet' />
+<link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+<link rel="stylesheet" href="../../css/bootstrap.min.css">
+<link href='../../libs/fullcalendar-3.4.0/fullcalendar.print.min.css' rel='stylesheet' media='print' />
+<script src='../../libs/fullcalendar-3.4.0/lib/moment.min.js'></script>
+<script src='../../libs/fullcalendar-3.4.0/lib/jquery.min.js'></script>
+<script src='../../libs/fullcalendar-3.4.0/fullcalendar.min.js'></script>
+<script src='../../libs/fullcalendar-3.4.0/locale/zh-cn.js'></script>
+<link href='../../libs/datetimepicker/jquery.datetimepicker.css' rel='stylesheet' type="text/css" />  
+<script src='../../libs/datetimepicker/jquery.datetimepicker.js'></script>    
+<link href='../../css/rhui.css' rel='stylesheet' type="text/css" />  
+<script src='../../libs/rhui-all.js'></script> 
+<script src="../../plugins/jqgrid/grid.locale-cn.js"></script>
+<script src="../../plugins/jqgrid/jquery.jqGrid.min.js"></script> 
+<script src="../../js/common.js"></script>
+<style>
+
+	body {
+		margin: 40px 10px;
+		padding: 0;
+		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+		font-size: 14px;
+	}
+
+	#calendar {
+		max-width: 900px;
+		margin: 0 auto;
+	}
+
+</style>
+</head>
+<body>
+
+	<div id='calendar'></div>
+	 <!-- 新建日程窗口 -->
+	<form class="form-horizontal" id="cartetForm" method="post" >  
+    <div class="rhui-window" id="addCalendarWin" style="display:none;">  
+        <div class="rhui-panel-body">  
+            <table style="margin-left:25px;">  
+                <tr>  
+                    <td class="field-label">菜单标题：</td>  
+                    <td><input class="rhui-field" name="title"  type="text" /></td>  
+                </tr>  
+                <tr>  
+                    <td class="field-label">菜品：</td>  
+                    <td><textarea id="dishContents" class="rhui-field"  name="carteRemark" style="height:62px;"></textarea></td>  
+                </tr>  
+                <tr>  
+                    <td class="field-label">供应开始时间：</td>  
+                    <td><input class="rhui-field" name="supplyStartTime"  type="text"/></td>  
+                </tr>  
+                <tr>  
+                    <td class="field-label">供应结束时间：</td>  
+                    <td><input class="rhui-field" name="supplyEndTime"   type="text"/>
+                    <input type="hidden" name="dishesCartList" id="dishesCartList" />
+                    </td>  
+                </tr>  
+            </table>  
+        </div>  
+    </div>
+    </form> 
+    <!-- end 新建日程窗口 -->  
+    
+     <!-- 修改日程窗口 -->  
+    <div class="rhui-window" id="editCalendarWin" style="display:none;">  
+        <div class="rhui-panel-body">  
+            <!-- 日程id -->  
+            <input type="hidden" name="id" />  
+            <table style="margin-left:25px;">  
+                <tr>  
+                    <td class="field-label">菜单标题：</td>  
+                    <td><input class="rhui-field" name="title"  type="text" /></td>  
+                </tr>  
+                <tr>  
+                    <td class="field-label">菜单内容：</td>  
+                    <td><textarea id="dishContents" class="rhui-field"  name="carteRemark" style="height:62px;" onclick=""></textarea></td>  
+                </tr>  
+                <tr>  
+                    <td class="field-label">供应开始时间：</td>  
+                    <td><input class="rhui-field" name="supplyStartTime"  v-model="carte.supplyStartTime" type="text"/></td>  
+                </tr>  
+                <tr>  
+                    <td class="field-label">供应结束时间：</td>  
+                    <td><input class="rhui-field" name="supplyEndTime"  v-model="carte.supplyEndTime" type="text"/></td>  
+                </tr>  
+            </table>  
+        </div>  
+    </div>  
+    <!-- end 修改日程窗口 -->
+    <div class="rhui-window" id="dishList" style="display:none;">
+    	 <div class="rhui-panel-body">  
+	    <table id="jqGrid"></table>
+	    <div id="jqGridPager"></div>
+	    </div>
+    </div>
+         
+	<script src="../../js/modules/restaurant/caret.js"></script>
+</body>
+</html>

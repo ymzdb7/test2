@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.DishesCarteDao">
+	
+	<select id="queryTotal" resultType="int">
+		select count(*)  from t_dish_carte 
+	<where>
+		<if test="carteId != null">
+			and carte_id=#{carteId}
+		</if> 
+		<if test="dishesId != null">
+			and dishes_id=#{dishesId}
+		</if> 
+		<if test="isLike != null">
+			and is_like=#{isLike}
+		</if> 	
+		</where>	
+		</select>
+	<select id="queryDishList" resultType="com.winhands.modules.restaurant.entity.DishesEntity">
+		select t2.*,t1.recom_num recomNum from t_dish_carte t1,t_dishes t2
+		where carte_id = #{carteId}
+		and t1.dishes_id = t2.id
+	</select>
+	
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.DishesCarteEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into t_dish_carte
+		(
+			`carte_id`, 
+			`dishes_id`,
+			`is_recom`,
+			`recom_num`, 
+			`is_like`, 
+			`like_num`, 
+			`score`
+		)
+		values
+		(
+			#{carteId}, 
+			#{dishesId},
+			#{isRecom},
+			#{recomNum}, 
+			#{isLike}, 
+			#{likeNum}, 
+			#{score}
+		)
+	</insert>
+	<delete id="deleteBatch">
+		delete from t_dish_carte where carte_id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>

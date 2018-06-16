@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.OrderDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.OrderEntity">
+		SELECT * from  t_order
+	
+		order by id 
+		desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="queryTotal" resultType="int">
+		select count(*) from t_order
+	</select>
+	
+	<!-- 查询最新产生的订单 -->
+	<select id="queryNew" resultType="com.winhands.modules.restaurant.entity.OrderEntity">
+	SELECT * from t_order ORDER BY id desc LIMIT 1
+	</select>
+	
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.OrderEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into t_order
+		(
+			`user_id`,
+			`order_phone`,
+			`order_number`,
+			`address`,
+			`order_state`,
+			`order_time`,
+			`or_consignee`
+		)
+		values
+		(
+			#{userId}, 
+			#{orderPhone},
+			#{orderNumber}, 
+			#{address},
+			#{orderState}, 
+			#{orderTime},
+			#{orConsignee}
+		)
+	</insert>
+	
+	
+	
+	
+</mapper>

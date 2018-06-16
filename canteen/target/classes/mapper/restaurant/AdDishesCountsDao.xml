@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.AdDishesCountsDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.AdDishesHeeEntity">
+		SELECT tad.advance_dishes as advanceDishes,abc.count as counts from (select toad.advance_dishes_id as advance_dishes_id,sum(count) as count from t_order_advance_dishes toad LEFT JOIN t_order tor ON  toad.order_id=tor.id   
+		<where>		                           
+			 <if test="startTime !=null">
+				<![CDATA[	and DATE_FORMAT(tor.order_time,"%Y-%m-%d") >= DATE_FORMAT(#{startTime},"%Y-%m-%d")]]>  
+			</if>
+			<if test="endTime !=null">
+			 	<![CDATA[	and DATE_FORMAT(tor.order_time,"%Y-%m-%d") <= DATE_FORMAT(#{endTime},"%Y-%m-%d") ]]>  
+			</if>
+		</where>
+	GROUP BY advance_dishes_id) abc LEFT JOIN t_advance_dishes tad on abc.advance_dishes_id =tad.id
+		
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	<select id="queryTotal" resultType="int">
+		select count(*) from t_type
+	</select>
+</mapper>

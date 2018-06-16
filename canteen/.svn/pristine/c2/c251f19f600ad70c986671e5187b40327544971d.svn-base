@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.CardDeviceDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.CardDeviceEntity">
+		SELECT tcd.id as id,tcd.terminal_no as terminalNo,toc.trans_money as transMoney 
+		from t_card_device tcd LEFT JOIN t_one_card  toc on tcd.terminal_no=toc.terminal_no
+		<where>
+		<if test="terminalNo != null and terminalNo.trim() != ''">
+		and tcd.`terminal_no` like concat('%',#{terminalNo},'%')
+		</if>
+		</where>
+		order by tcd.id 
+		desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+
+	<select id="queryListExCou" resultType="com.winhands.modules.restaurant.entity.ExpenseCountsEntity">
+		SELECT abc.card_no as cardNo,abc.department,SUM(abc.trans_money) as transMoneyCounts 
+		FROM (SELECT tcd.card_no,tcd.department,toc.trans_money,toc.trans_time FROM t_card_department tcd 
+		LEFT JOIN t_one_card toc on tcd.card_no=toc.card_no 
+		<where>
+			<if test="transTime != null and transTime.trim() != ''">
+			and DATE_FORMAT(toc.trans_time,'%Y-%m')=#{transTime}
+			</if>
+		</where>
+		) abc  
+		GROUP BY abc.card_no ORDER BY abc.department desc
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+
+
+
+
+<select id="queryTotal" resultType="int">
+	SELECT count(*) from (	SELECT tcd.id as id,tcd.terminal_no as terminalNo,toc.trans_money as transMoney 
+		from t_card_device tcd LEFT JOIN t_one_card  toc on tcd.terminal_no=toc.terminal_no
+		<where>
+		<if test="terminalNo != null and terminalNo.trim() != ''">
+		and tcd.`terminal_no` like concat('%',#{terminalNo},'%')
+		</if>
+		</where>
+		order by tcd.id 
+		desc ) abc
+			
+	</select>
+
+</mapper>

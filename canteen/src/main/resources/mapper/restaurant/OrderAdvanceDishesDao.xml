@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.OrderAdvanceDishesDao">
+	
+		<select id="queryList" resultType="com.winhands.modules.restaurant.entity.OrderAdvanceDishesEntity">
+			select * from t_order_advance_dishes  
+			<where>
+				<if test="orderId != null">
+					and `order_id` =#{orderId}
+				</if>
+			</where>
+		</select>
+	
+	<select id="queryListG" resultType="com.winhands.modules.restaurant.entity.AdDishesHeEntity">
+		select ad.advance_dishes as advanceDishes,ad.adv_dishes_price as advDishesPrice,ad.counts as counts,oad.count as count from t_order_advance_dishes oad LEFT JOIN t_advance_dishes ad on oad.advance_dishes_id=ad.id
+			<where>
+				<if test="id !=null">
+					and  oad.order_id=#{id}
+				</if>
+			</where>
+		</select>
+		
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.OrderAdvanceDishesEntity" useGeneratedKeys="true" keyProperty="id">
+			insert into t_order_advance_dishes 
+			(
+			`order_id`,
+			`advance_dishes_id`,
+			`count`,
+			`adv_dishes_price`
+			)
+			values
+			(
+			#{orderId},
+			#{advanceDishesId},
+			#{count},
+			#{advDishesPrice}
+			)
+	</insert>	
+	
+	
+	
+	
+</mapper>

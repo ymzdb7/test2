@@ -1,0 +1,76 @@
+package com.winhands.modules.restaurant.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.winhands.modules.restaurant.dao.AdvanceDishesDao;
+import com.winhands.modules.restaurant.entity.AdvanceDishesEntity;
+import com.winhands.modules.restaurant.service.AdvanceDishesService;
+
+
+
+/**
+ * 预定菜品管理
+ */
+@Service("advanceDishesService")
+public class AdvanceDishesServiceImpl implements AdvanceDishesService {
+	@Autowired
+	private AdvanceDishesDao advanceDishesDao;
+
+	@Override
+	public List<AdvanceDishesEntity> queryList(Map<String, Object> map) {
+		return advanceDishesDao.queryList(map);
+	}
+
+	@Override
+	public int queryTotal(Map<String, Object> map) {
+		return advanceDishesDao.queryTotal(map);
+	}
+
+	@Override
+	public void save(AdvanceDishesEntity dishes) {
+		advanceDishesDao.save(dishes);
+	}
+
+	@Override
+	public void update(AdvanceDishesEntity dishes) {
+		advanceDishesDao.update(dishes);
+	}
+
+	@Override
+	public void deleteBatch(Long[] ids) {
+		advanceDishesDao.deleteBatch(ids);
+	}
+
+	@Override
+	public AdvanceDishesEntity queryObject(Long id) {
+		return advanceDishesDao.queryObject(id);
+	}
+
+	@Override
+	public List<AdvanceDishesEntity> querySelList(Map<String, Object> map) {
+		return advanceDishesDao.querySelList(map);
+	}
+
+	@Override
+	public int querySelTotal(Map<String, Object> map) {
+		return advanceDishesDao.querySelTotal(map);
+	}
+
+	@Override
+	public List<AdvanceDishesEntity> typeDish(String[] typeS) {
+		// TODO Auto-generated method stub
+		return advanceDishesDao.typeDish(typeS);
+	}
+
+	@Override
+	public void updateO(AdvanceDishesEntity advanceDishes) {
+		// TODO Auto-generated method stub
+		advanceDishesDao.updateO(advanceDishes);
+	}
+
+	
+}

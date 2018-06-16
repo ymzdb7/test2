@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.CarteBankDishesDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.CarteBankDishesEntity">
+		select di.type_name as typeName,di.dishes_pic_path as dishesPicPath,di.dishes_pic_name as dishesPicName,di.detail_html as detailHtml,di.dishes_detail as dishesDetail,di.create_user_id as createUserId,di.address as address, cbd.id as id, di.id as dishesId,di.dishes as dishes from t_carte_bank_dishes cbd
+		left join t_dishes di  on cbd.dishes_id=di.id
+		<where>
+		<if test="dishes != null and dishes.trim() != ''">
+		and `dishes` like concat('%',#{dishes},'%')
+		</if>
+		<if test="carteBankId != null">
+		and `carte_bank_id` =#{carteBankId}
+		</if>
+		</where>
+		order by cbd.id 
+		desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	<select id="queryTotal" resultType="int">
+		select count(*) from t_carte_bank_dishes where  `carte_bank_id` =#{carteBankId}
+	
+	</select>
+
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.CarteBankDishesEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into t_carte_bank_dishes
+		(
+			`carte_bank_id`, 
+		 	`dishes_id`
+		)
+		values
+		(
+			#{carteBankId}, 
+			#{dishesId}
+		)
+	</insert>
+	
+	<delete id="deleteBatch">
+		delete from t_carte_bank_dishes where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<delete id="deleteBatchDishesId">
+		delete from t_carte_bank_dishes where dishes_id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+
+
+<delete id="delete">
+		delete from t_carte_bank_dishes where carte_bank_id =#{id}
+	</delete>
+
+
+</mapper>

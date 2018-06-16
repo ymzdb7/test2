@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.CarteDao">
+	
+		<select id="queryObject" resultType="com.winhands.modules.restaurant.entity.CarteEntity">
+		select * from t_carte where id = #{id}
+	</select>
+	
+	<select id="queryNew" resultType="com.winhands.modules.restaurant.entity.CarteEntity">
+			SELECT * from t_carte ORDER BY id DESC limit 1;
+	</select>
+	
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.CarteEntity">
+		select  
+		*
+		from t_carte
+		<where>
+	   	   <if test="day != null and day != ''">  
+	            and carte_date  = #{day}
+	   	   </if> 
+	   	   <if test="address != null and address.trim() != ''">
+				and address = #{address}
+			</if>
+		<!-- 	<if test="startTime !=null">
+		<![CDATA[	and DATE_FORMAT(carte_date,"%Y-%m-%d") >= DATE_FORMAT(#{startTime},"%Y-%m-%d")]]>  
+			</if>
+			<if test="endTime !=null">
+		 <![CDATA[	and DATE_FORMAT(carte_date,"%Y-%m-%d") <= DATE_FORMAT(#{endTime},"%Y-%m-%d") ]]>  
+			</if> -->
+			
+			
+		</where>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+		<!-- order by carte_date ASC -->
+	</select>
+	
+	
+	
+	<select id="queryaddressList" resultType="string">
+	
+	
+	SELECT address FROM `t_carte`
+	
+
+	 where DATE_FORMAT(carte_date,'%Y-%m-%d')=DATE_FORMAT(NOW(),'%Y-%m-%d')
+	 
+	  GROUP BY address
+		
+	</select>
+	
+	
+	
+		<select id="queryTotal" resultType="int">
+		select count(*) from t_carte
+		<where>
+			<if test="monday !=null">
+		<![CDATA[	and DATE_FORMAT(carte_date,"%Y-%m-%d") >= DATE_FORMAT(#{monday},"%Y-%m-%d")]]>  
+			</if>
+			<if test="sunday !=null">
+		 <![CDATA[	and DATE_FORMAT(carte_date,"%Y-%m-%d") <= DATE_FORMAT(#{sunday},"%Y-%m-%d") ]]>  
+			</if>
+			</where>
+	</select>
+	
+	
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.CarteEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into t_carte
+		(
+			`title`, 
+			`carte_remark`,
+			`carte_date`,
+			`supply_start_time`, 
+			`supply_end_time`, 
+			`sel`, 
+			`foods_list`, 
+			`address`, 
+			`create_date`, 
+			`create_user_id`
+		)
+		values
+		(
+			#{title}, 
+			#{carteRemark},
+			#{carteDate},
+			#{supplyStartTime}, 
+			#{supplyEndTime},
+			#{sel},
+			#{foodsList}, 
+			#{address}, 
+			#{createDate}, 
+			#{createUserId}
+		)
+	</insert>
+	<update id="update" parameterType="com.winhands.modules.restaurant.entity.CarteEntity">
+		update t_carte 
+		<set> 
+		
+			 <if test="sel != null">`sel` = #{sel},</if> 
+			<if test="title != null">`title` = #{title}, </if>
+				<if test="address != null">`address` = #{address}, </if>
+				<if test="carteDateStr != null and carteDateStr.trim()!=''">`carte_date` = #{carteDateStr}, </if>
+			<if test="supplyStartTime != null">`supply_start_time` = #{supplyStartTime}, </if>
+			<if test="supplyEndTime != null">`supply_end_time` = #{supplyEndTime}, </if>
+			<if test="foodsList != null">`foods_list` = #{foodsList}, </if>
+			<if test="createUserId != null">`create_user_id` = #{createUserId}, </if>
+			
+		</set>
+		where id = #{id} 
+	</update>
+	<delete id="deleteBatch">
+		delete from t_carte where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	<delete id="delete">
+		delete from t_carte where id =#{id}
+	</delete>
+	
+</mapper>

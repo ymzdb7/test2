@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.winhands.modules.restaurant.dao.CardDepartmentDao">
+	<select id="queryList" resultType="com.winhands.modules.restaurant.entity.CardDepartmentEntity">
+		select * from t_card_department
+		<where>
+		<if test="cardNo != null and cardNo.trim() != ''">
+		and `card_no` =#{cardNo}
+		</if>
+		</where>
+		order by department 	desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	<!-- <select id="queryListOo" resultType="com.winhands.modules.restaurant.entity.CardDepartmentHeEntity">
+	SELECT tcd.card_no as cardNo,tcd.department as department,ifnull(toc.trans_money,0) as transMoney,toc.trans_time as transTime FROM `t_card_department`  tcd LEFT JOIN t_one_card toc on tcd.card_no=toc.card_no
+		
+		<where>
+		<if test="cardNo != null and cardNo.trim()!=''">
+		and tcd.`card_no` like concat('%',#{cardNo},'%')
+		</if>
+		</where>
+	order by tcd.department 	desc 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select> -->
+	
+	
+	
+	<select id="queryTotal" resultType="int">
+	
+			select count(*)  from t_card_department 
+			<where>
+			<if test="cardNo !=null and cardNo !=''">
+			and `card_no`=#{cardNo}
+			</if>
+			</where> 
+	
+	</select>
+	
+	
+<!-- 	<select id="queryListYes" resultType="com.winhands.modules.restaurant.entity.CardDepartmentEntity">
+			SELECT * FROM `t_ad_type` where id in
+	 (select DISTINCT type_id from t_advance_dishes where delete_state='0' and  address=#{address})
+	</select>
+	 -->
+	<insert id="save" parameterType="com.winhands.modules.restaurant.entity.TypeEntity" useGeneratedKeys="true" keyProperty="id">
+			insert into t_card_department 
+			(
+			`card_no`,
+			`department`
+			)
+			values
+			(
+			#{cardNo},
+			#{department}	
+			
+			)
+	</insert>
+	<!-- 
+	
+	<select id="queryObject" resultType="com.winhands.modules.restaurant.entity.CardDepartmentEntity">
+		select * from t_card_department where id = #{id}
+	</select>
+		<update id="update" parameterType="com.winhands.modules.restaurant.entity.CardDepartmentEntity">
+		update t_type
+		<set> 
+			<if test="typeName != null">`type_name` = #{typeName}, </if>
+		</set>
+		where id = #{id} 
+	</update>
+	
+	<delete id="deleteBatch">
+		delete from t_card_department where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete> -->
+	
+</mapper>

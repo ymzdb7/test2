@@ -1,0 +1,181 @@
+package com.winhands.modules.restaurant.entity;
+
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+/**
+ * 菜品管理
+ */
+public class AdvanceDishesEntity implements Serializable {
+	private static final long serialVersionUID = 1L;
+	private Long id; // ID
+	private Long typeId;
+	private String advanceDishes;//菜名
+	private BigDecimal advDishesPrice;
+	private String advDishesPrice1;
+	private String typeName;//种类
+	private String advanceDishesPicPath;//菜图片路径
+	private String advanceDishesPicName;//菜图片原名
+	private String batching;//配料
+	private String instruction;//说明
+	private String address;//属地
+	private Long createUserId;//创建者Id
+	private String advanceDetailHtml;
+	private String advanceDishesDetail;
+	private Integer counts;//库存数量
+	private String adDishesStatus;//预定菜品状态：1预定菜品上架2预定菜品下架
+	private String priceCounts;//单价数量
+	private String calculateName;//计量单位名称
+	
+	
+	
+	public String getAdvDishesPrice1() {
+		return advDishesPrice1;
+	}
+
+	public void setAdvDishesPrice1(String advDishesPrice1) {
+		this.advDishesPrice1 = advDishesPrice1;
+	}
+
+	public String getAdDishesStatus() {
+		return adDishesStatus;
+	}
+
+	public void setAdDishesStatus(String adDishesStatus) {
+		this.adDishesStatus = adDishesStatus;
+	}
+
+	public String getPriceCounts() {
+		return priceCounts;
+	}
+
+	public void setPriceCounts(String priceCounts) {
+		this.priceCounts = priceCounts;
+	}
+
+	public String getCalculateName() {
+		return calculateName;
+	}
+
+	public void setCalculateName(String calculateName) {
+		this.calculateName = calculateName;
+	}
+
+	public Long getTypeId() {
+		return typeId;
+	}
+
+	public void setTypeId(Long typeId) {
+		this.typeId = typeId;
+	}
+
+	public Integer getCounts() {
+		return counts;
+	}
+
+	public void setCounts(Integer counts) {
+		this.counts = counts;
+	}
+
+
+	public BigDecimal getAdvDishesPrice() {
+		return advDishesPrice;
+	}
+
+	public void setAdvDishesPrice(BigDecimal advDishesPrice) {
+		this.advDishesPrice = advDishesPrice;
+	}
+
+	public String getAdvanceDishesDetail() {
+		return advanceDishesDetail;
+	}
+
+	public void setAdvanceDishesDetail(String advanceDishesDetail) {
+		this.advanceDishesDetail = advanceDishesDetail;
+	}
+
+	public String getAdvanceDishesPicPath() {
+		return advanceDishesPicPath;
+	}
+
+	public void setAdvanceDishesPicPath(String advanceDishesPicPath) {
+		this.advanceDishesPicPath = advanceDishesPicPath;
+	}
+
+	public String getAdvanceDishesPicName() {
+		return advanceDishesPicName;
+	}
+
+	public void setAdvanceDishesPicName(String advanceDishesPicName) {
+		this.advanceDishesPicName = advanceDishesPicName;
+	}
+
+	public String getAdvanceDetailHtml() {
+		return advanceDetailHtml;
+	}
+
+	public void setAdvanceDetailHtml(String advanceDetailHtml) {
+		this.advanceDetailHtml = advanceDetailHtml;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getAdvanceDishes() {
+		return advanceDishes;
+	}
+
+	public void setAdvanceDishes(String advanceDishes) {
+		this.advanceDishes = advanceDishes;
+	}
+
+	public String getTypeName() {
+		return typeName;
+	}
+
+	public void setTypeName(String typeName) {
+		this.typeName = typeName;
+	}
+
+
+
+	public String getBatching() {
+		return batching;
+	}
+
+	public void setBatching(String batching) {
+		this.batching = batching;
+	}
+
+	public String getInstruction() {
+		return instruction;
+	}
+
+	public void setInstruction(String instruction) {
+		this.instruction = instruction;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public Long getCreateUserId() {
+		return createUserId;
+	}
+
+	public void setCreateUserId(Long createUserId) {
+		this.createUserId = createUserId;
+	}
+
+	
+	
+}

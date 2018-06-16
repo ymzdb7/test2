@@ -1,0 +1,422 @@
+package com.winhands.modules.restaurant.controller;
+
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.winhands.common.annotation.SysLog;
+import com.winhands.common.utils.PageUtils;
+import com.winhands.common.utils.Query;
+import com.winhands.common.utils.R;
+import com.winhands.common.utils.StringUtil;
+import com.winhands.modules.restaurant.entity.CarteBankDishesEntity;
+import com.winhands.modules.restaurant.entity.CarteEntity;
+import com.winhands.modules.restaurant.entity.CarteTypeDishesEntity;
+import com.winhands.modules.restaurant.entity.DishesEntity;
+import com.winhands.modules.restaurant.entity.ThumbsEntity;
+import com.winhands.modules.restaurant.service.CarteBankDishesService;
+import com.winhands.modules.restaurant.service.CarteService;
+import com.winhands.modules.restaurant.service.CarteTypeDishesService;
+import com.winhands.modules.restaurant.service.DishesCarteService;
+import com.winhands.modules.restaurant.service.DishesService;
+import com.winhands.modules.restaurant.service.ThumbsService;
+import com.winhands.modules.sys.controller.AbstractController;
+
+
+
+/**
+ * 菜单管理
+ * 
+ */
+@RestController
+@RequestMapping("/restaurant/carte")
+public class CarteController extends AbstractController {
+	@Autowired
+	private CarteService carteService;
+	@Autowired
+	private DishesService dishesService;
+	@Autowired
+	private DishesCarteService dishesCarteService;
+	@Autowired
+	private ThumbsService thumbsService;
+	@Autowired
+	private CarteTypeDishesService carteTypeDishesService;
+	@Autowired
+	private CarteBankDishesService carteBankDishesService;
+	
+	/**
+	 * 菜单信息
+	 */
+	@RequestMapping("/infoo/{id}")
+	public R info(@PathVariable("id") Long id){
+		CarteEntity carte =carteService.queryObject(id);
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+		carte.setCarteDateStr(sdf.format(carte.getCarteDate()));
+		return R.ok().put("carte", carte);
+	}
+	
+	/**
+	 * 获取登录帐号的属地
+	 */
+	@RequestMapping("/getLoginAddress")
+	public R getLoginAddress(){
+		String addressGet="";
+			if(getUser().getAddress()!=null&&!getUser().getAddress().equals("")) {
+					 addressGet=getUser().getAddress();
+			}
+		return R.ok().put("addressGet", addressGet);
+	}
+	
+	
+	
+	
+	/**
+	 * 删除菜单信息
+	 */
+	@RequestMapping("/deletee")
+	public R deletee(@RequestBody Long id){
+		carteService.delete(id);
+		carteTypeDishesService.delete(id);
+		return R.ok();
+	}
+	
+	
+	/**
+	 * 保存菜单
+	 */
+	@SysLog("保存菜单")
+	@ResponseBody
+	@RequestMapping(value="/save", method=RequestMethod.POST)
+	public  R save(@RequestBody CarteEntity carte){
+		if(getUser().getAddress()!=null&&!StringUtil.isNull(getUser().getAddress().trim())&&!getUser().getAddress().equals(carte.getAddress())) {
+			return R.error("请选择您的属地："+getUser().getAddress());
+		}else {
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			carte.setCarteDate(sdf.parse(carte.getCarteDateStr()));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		carteService.save(carte);
+		
+		//将菜单库dishesId保存到菜单下
+		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("carteBankId", carte.getCarteBankId());
+		List<CarteBankDishesEntity> carteBankDishes=carteBankDishesService.queryList(map);
+		CarteTypeDishesEntity carteTypeDishes=new CarteTypeDishesEntity();
+		CarteEntity 	carte1=carteService.queryNew();
+		for (int i = 0; i < carteBankDishes.size(); i++) {
+			carteTypeDishes.setCarteId(carte1.getId());
+			carteTypeDishes.setDishesId(carteBankDishes.get(i).getDishesId());
+			carteTypeDishesService.save(carteTypeDishes);
+		}
+		
+		
+	return R.ok();
+	}
+	}
+	
+	/**
+	 * 初始化日历菜单yemmmm
+	 */
+	@SysLog("初始化菜单菜单")
+	
+	@RequestMapping(value="/lists")
+	public R lists(@RequestParam Map<String, Object> params){
+		//查询列表数据
+		
+		//Query query = new Query(params);
+		/*Map <String ,Object>map =new HashMap<String ,Object>();
+		if(!StringUtil.isNull(getUser().getAddress())) {
+			map.put("address", getUser().getAddress());
+		}
+		List<CarteEntity> carteList = carteService.queryList(map);
+		return R.ok().put("carteList", carteList);*/
+		
+		
+		
+		/*if(null==getUser().getAddress()||getUser().getAddress().equals("")) {
+		}else {
+			params.put("address", getUser().getAddress());
+		}*/
+		List<Map> carteList = new ArrayList<Map>();
+		Query query = new Query(params);
+		Map<String,Object>	map =  new HashMap<String ,Object>();
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+		String time=(String)params.get("time");
+
+		if(time==null||time.equals("")) {
+			
+			String time1=sdf.format(new Date());
+			time=time1;
+		}
+		Date date;
+		int total=5;
+		try {
+			date = sdf.parse(time);
+		/*	String cc=getUser().getAddress().trim();*/
+			Date monday = convertWeekByDate(date);
+		/*	map.put("monday", sdf.format(monday));*/
+			for(int i=0;i<7;i++) {
+				map =  new HashMap<String ,Object>();
+				Date day = nextday(monday, i);
+				/*if(i==6) {
+					
+					map.put("sunday", sdf.format(nextday(monday, 6)));
+				}*/
+				map.put("day", sdf.format(day));
+				
+			if(getUser().getAddress()!=null) {
+				if(!StringUtil.isNull(getUser().getAddress().trim())) {
+					map.put("address", getUser().getAddress().trim());
+				}
+			}
+				
+				
+				
+				List<CarteEntity> carteDayList = carteService.queryList(map);
+				if(null==carteDayList||carteDayList.size()==0) {
+				}else {
+					Map<String,List> mm= new HashMap<String,List>();
+					mm.put("carteDayList", carteDayList);
+					carteList.add(mm);
+				}
+				
+			}
+			 total	 = 0;
+			} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
+		PageUtils pageUtil = new PageUtils(carteList, total, query.getLimit(), query.getPage());
+			return R.ok().put("page", pageUtil);
+		
+			
+	}
+	
+	
+	
+	
+	/**
+	 * 初始化菜品列表@PathVariable("typeName")
+	 */
+	@RequestMapping("/dishlist")
+	public R dishlist(){
+	
+
+		Map <String ,Object> map =  new HashMap<String ,Object>();
+	
+	
+			List<DishesEntity> dishList = dishesService.queryList(map);
+			
+		
+		
+		return R.ok().put("dishList", dishList);
+	}
+	
+	/**
+	 * 初始化菜品列表
+	 */
+	@RequestMapping("/dishSellist")
+	public R dishSellist(@RequestParam Map<String, Object> params){
+		//查询列表数据
+		List<DishesEntity> dishList = dishesService.querySelList(params);
+		return R.ok().put("dishList", dishList);
+	}
+	/**
+	 * 修改菜品种类
+	 */
+	@ResponseBody
+	@RequestMapping(value="/update", method=RequestMethod.POST)
+	public R update(@RequestBody CarteEntity carte){
+	
+		carteService.update(carte);
+		return R.ok();
+	}
+	
+	/**
+	 * 删除菜单
+	 */
+	@SysLog("删除菜单")
+	@RequestMapping(value="/delete", method=RequestMethod.POST)
+	public R delete(@RequestBody Long[] id){
+		carteService.deleteBatch(id);
+	
+		
+		return R.ok();
+	}
+	
+	/**
+	 * 客户端获取判断是否点赞状态及菜品点赞数,其中0是未评价，1是已评价，2是dishes为空
+	 */
+	@RequestMapping(value="/thumbs" , method = RequestMethod.POST)
+	public R thumbs( String carteId,String dishesId,String num){
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+		String date=sdf.format(new Date());
+		String userId=String.valueOf(getUser().getUserId());
+		Map <String ,Object> map =  new HashMap<String ,Object>();
+		map.put("userId",Integer.parseInt(userId));
+		map.put("carteId",Integer.parseInt(carteId));
+		map.put("dishesId",Integer.parseInt(dishesId));
+		map.put("createTime",date);
+		ThumbsEntity  thumbs=thumbsService.queryObject(map);
+		DishesEntity dishes=dishesService.queryObject(Long.parseLong(dishesId));
+		if(thumbs==null&&num.equals("1")) {
+			if(dishes==null) {
+				return R.ok("2");
+				
+			}
+			ThumbsEntity  thumbs1=new ThumbsEntity();
+			thumbs1.setUserId(Integer.parseInt(userId));
+			thumbs1.setCarteId(Integer.parseInt(carteId));
+			thumbs1.setDishesId(Integer.parseInt(dishesId));
+			thumbs1.setTime(new Date());
+			thumbsService.save(thumbs1);
+			int total=Integer.parseInt(dishes.getRecomNum())+1;
+			dishes.setRecomNum(Integer.toString(total));
+			dishesService.update(dishes);
+			return  R.ok("0").put("reconmNum", dishes.getRecomNum());
+		}else if(thumbs!=null&&num.equals("-1")) { 
+			if(dishes==null) {
+				return R.ok("2");
+				
+			}
+			int total=Integer.parseInt(dishes.getRecomNum())-1;
+			dishes.setRecomNum(Integer.toString(total));
+			dishesService.update(dishes);
+			return  R.ok("0").put("reconmNum", dishes.getRecomNum());
+		}
+		if(dishes==null) {
+			return R.ok("2");
+			
+		}
+		return R.ok("1").put("recomNum", dishes.getRecomNum());
+		
+	
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * 客户端获取当天菜单接口
+	 */
+	@RequestMapping(value="/msList" , method = RequestMethod.POST)
+	public R msList(String address){
+/*		List<List> carteList = new ArrayList<List>();*/
+		Map<String,Object>	map =  new HashMap<String ,Object>();
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+		if(!StringUtil.isNull(address)) {
+			map.put("address", address);
+		}
+		
+		map.put("day", sdf.format(new Date()));
+		List<CarteEntity> carteList = carteService.queryList(map);
+		
+		
+		/*if(queryDate==null) {
+			
+			String time1=sdf.format(new Date());
+			queryDate=time1;
+		}
+		Date date;
+		int total=0;
+		try {
+			date = sdf.parse(queryDate);
+			
+			Date monday = convertWeekByDate(date);
+			for(int i=0;i<5;i++) {
+				map =  new HashMap<String ,Object>();
+				Date day = nextday(monday, i);
+				map.put("day", sdf.format(day));
+				if(!StringUtil.isNull(address)) {
+					map.put("address", address);
+				}
+				List<CarteEntity> carteDayList = carteService.queryList(map);
+				if(null==carteDayList||carteDayList.size()==0) {
+				}else {
+					carteList.add(carteDayList);
+				}
+				
+			}
+		
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+*/
+		
+		return R.ok().put("carteList", carteList);
+	}
+	
+	
+	//传入日期，获取传入日期的周一和周五的
+	
+	private Date convertWeekByDate(Date time) {  
+		Map <String ,Object> map = new LinkedHashMap <String ,Object>();;
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd"); //设置时间格式  
+        Calendar cal = Calendar.getInstance(); 
+        Date monday = null;
+        cal.setTime(time);  
+        //判断要计算的日期是否是周日，如果是则减一天计算周六的，否则会出问题，计算到下一周去了  
+        int dayWeek = cal.get(Calendar.DAY_OF_WEEK);//获得当前日期是一个星期的第几天  
+        if(1 == dayWeek) {  
+          cal.add(Calendar.DAY_OF_MONTH, -1);  
+        }  
+        System.out.println("要计算日期为:"+sdf.format(cal.getTime())); //输出要计算日期  
+        cal.setFirstDayOfWeek(Calendar.MONDAY);//设置一个星期的第一天，按中国的习惯一个星期的第一天是星期一  
+        int day = cal.get(Calendar.DAY_OF_WEEK);//获得当前日期是一个星期的第几天  
+        cal.add(Calendar.DATE, cal.getFirstDayOfWeek()-day);//根据日历的规则，给当前日期减去星期几与一个星期第一天的差值   
+        monday = cal.getTime();
+        String imptimeBegin = sdf.format(cal.getTime()); 
+        map.put("0", imptimeBegin);//周一
+        System.out.println("所在周星期一的日期："+imptimeBegin);  
+		return monday;  
+           
+   }
+	//当前天的后一天
+	private Date nextday(Date time,int i) {  
+        Calendar cal = Calendar.getInstance(); 
+        Date nextday = null;
+        cal.setTime(time); 
+        cal.add(Calendar.DATE, i);
+        nextday=cal.getTime();
+		return nextday;  
+           
+   }
+	
+	
+	
+
+	/**
+	 * 后台获取当天菜单更新属地接口
+	 */
+	@RequestMapping(value="/addressList" , method = RequestMethod.GET)
+	public R addressList(){
+		List<String> carteAddressList = carteService.queryaddressList();
+		return R.ok().put("carteAddressList", carteAddressList);
+	}
+		
+}
